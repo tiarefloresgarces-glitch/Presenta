@@ -1,0 +1,166 @@
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script><!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Presentación sobre Marmotas</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        .container {
+            max-width: 800px;
+            margin: auto;
+            padding: 20px;
+        }
+        header {
+            text-align: center;
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 0;
+        }
+        section {
+            background-color: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h2 {
+            color: #4CAF50;
+        }
+        img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+        }
+        .slide {
+            display: none;
+        }
+        .slide.active {
+            display: block;
+        }
+        nav {
+            text-align: center;
+            margin: 20px 0;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 0 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>¡Descubre a las Marmotas!</h1>
+        </header>
+
+        <section id="slide1" class="slide active">
+            <h2>¿Qué son las marmotas?</h2>
+            <p>Las marmotas son roedores grandes pertenecientes al género <em>Marmota</em>. Son conocidas por su vida en madrigueras y su hibernación durante el invierno.</p>
+            <img src="images/marmota_habitat.jpg" alt="Marmota en su hábitat">
+        </section>
+
+        <section id="slide2" class="slide">
+            <h2>Hábitat</h2>
+            <p>Las marmotas viven en regiones montañosas, como los Alpes, las Rocosas y el Himalaya. Prefieren praderas y zonas rocosas donde pueden cavar sus madrigueras.</p>
+            <img src="images/montanas_marmotas.jpg" alt="Montañas con marmotas">
+        </section>
+
+        <section id="slide3" class="slide">
+            <h2>Comportamiento</h2>
+            <p>Las marmotas son animales sociales que viven en colonias. Son famosas por sus silbidos para alertar sobre depredadores y por hibernar hasta 7 meses al año.</p>
+            <img src="images/marmota_silbando.jpg" alt="Marmota silbando">
+        </section>
+
+        <section id="slide4" class="slide">
+            <h2>Curiosidades</h2>
+            <ul>
+                <li>La marmota más famosa es Punxsutawney Phil, que "predice" el clima en el Día de la Marmota en EE.UU.</li>
+                <li>Pueden pesar entre 2 y 8 kg dependiendo de la especie.</li>
+                <li>Su dieta incluye hierbas, flores y, en ocasiones, pequeños insectos.</li>
+            </ul>
+            <img src="images/marmota_curiosa.jpg" alt="Marmota curiosa">
+        </section>
+
+        <nav>
+            <button onclick="prevSlide()">Anterior</button>
+            <button onclick="nextSlide()">Siguiente</button>
+        </nav>
+    </div>
+
+    <script>
+        let currentSlide = 1;
+        const totalSlides = 4;
+
+        function showSlide(slideNumber) {
+            document.querySelectorAll('.slide').forEach(slide => slide.classList.remove('active'));
+            document.getElementById(`slide${slideNumber}`).classList.add('active');
+            currentSlide = slideNumber;
+        }
+
+        function nextSlide() {
+            if (currentSlide < totalSlides) {
+                showSlide(currentSlide + 1);
+            }
+        }
+
+        function prevSlide() {
+            if (currentSlide > 1) {
+                showSlide(currentSlide - 1);
+            }
+        }
+    </script>
+</body>
+</html>
